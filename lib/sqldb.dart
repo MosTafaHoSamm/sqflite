@@ -19,11 +19,12 @@ class SqlDb {
     String path = join(dbPath, 'notes.db');
     print(path);
     Database myDb = await openDatabase(path,
-        onCreate: _onCreate, version:2, onUpgrade: _onUpgrade);
+        onCreate: _onCreate, version:5, onUpgrade: _onUpgrade);
     return myDb;
   }
 
-  _onUpgrade(Database db, int oldVersion, int newVersion) {
+  _onUpgrade(Database db, int oldVersion, int newVersion)async {
+    await db.execute("ALTER TABLE note ADD COLUMN title TEXT");
     print('OnUpgrade');
   }
 
@@ -58,5 +59,11 @@ class SqlDb {
     Database? myDb = await db;
     int response = await myDb!.rawUpdate(sql);
     return response;
+  }
+  deleteDatabaseMod()async{
+    String databasePath=await getDatabasesPath();
+    String path=join(databasePath,'notes.db');
+    await deleteDatabase(path);
+
   }
 }
