@@ -1,43 +1,82 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
+import 'package:get/get_state_manager/src/simple/get_state.dart';
+import 'package:notes/controller/home_controller.dart';
 import 'package:notes/sqldb.dart';
 
 class Home extends StatelessWidget {
-  const Home({Key? key}) : super(key: key);
-  Future<List<Map>> getData() async {
-    List<Map> response = await SqlDb().readData("SELECT * FROM 'note'");
-    return response;
-  }
+  Home({Key? key}) : super(key: key);
+
+  // Future<List<Map>> getData() async {
+  //   List<Map> response = await SqlDb().readData("SELECT * FROM 'note'");
+  //   return response;
+  // }
 
   @override
   Widget build(BuildContext context) {
-
-
-    List<Map>? data;
-    return Scaffold(
+     return Scaffold(
+       floatingActionButton: FloatingActionButton(
+         onPressed: (){},
+         child: Icon(Icons.add),
+       ),
       appBar: AppBar(
         title: const Text('Notes'),
       ),
       body: Column(
         children: [
-          // FutureBuilder(
-          //   future: getData(),
-          //   builder: (context, AsyncSnapshot<List<Map>> snapShot) {
-          //     if (snapShot. hasData) {
-          //       return ListView.builder(
-          //         physics: NeverScrollableScrollPhysics(),
-          //         shrinkWrap: true,
-          //         itemCount: snapShot.data!.length,
-          //         itemBuilder: (context, index) {
-          //           return Text('${snapShot.data![index]}');
-          //         },
-          //       );
-          //     } else {
-          //       return Center(
-          //         child: CircularProgressIndicator(),
-          //       );
-          //     }
-          //   },
-          // ),
+          Expanded(
+            child: Container(
+               child: GetBuilder<HomeController>(
+                init: HomeController(),
+                builder: (controller) {
+                  return FutureBuilder(
+                    future: controller.getData(),
+                    builder: (context, AsyncSnapshot<List<Map>> snapShot) {
+                      if (snapShot.hasData) {
+                        return ListView.builder(
+                          physics: BouncingScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: snapShot.data!.length,
+                          itemBuilder: (context, index) {
+                            return Dismissible(
+                              onDismissed: (vv){
+                                SqlDb().deleteData("DELETE FROM note Where id =${snapShot.data![index]['id']}");
+                              },
+                              key:  Key('${snapShot.data![index]['id']}' ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Card(
+                                  child: ListTile(
+                                    style: ListTileStyle.drawer,
+                                    tileColor: Colors.grey,
+
+                                    title: Text(' ${snapShot.data![index]['id']}'),
+                                    subtitle: Text('${snapShot.data![index]['note']}'),
+                                    trailing: CircleAvatar(
+                                      radius: 18,
+                                      backgroundColor: Colors.pink,
+                                      child: CircleAvatar(
+                                        backgroundColor: Colors.green,
+                                        radius: 15,
+                                        child: Text('${snapShot.data![index]['id']}'),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -46,7 +85,7 @@ class Home extends StatelessWidget {
                     child: ElevatedButton(
                   onPressed: () async {
                     int response = await SqlDb().insertData(
-                        "INSERT INTO 'note' ('note') VALUES ('Asmaa Note')");
+                        "INSERT INTO 'note' ('note','title') VALUES ('Asmaa Note','Samasemo')");
                     print(response);
                   },
                   child: Text('Insert Data'),
@@ -60,8 +99,7 @@ class Home extends StatelessWidget {
                       backgroundColor:
                           MaterialStateProperty.all(Colors.greenAccent)),
                   onPressed: () async {
-                    data = await SqlDb().readData("SELECT * FROM 'note' ");
-                    print(data);
+
                   },
                   child: Text('Get Data'),
                 ))
@@ -76,7 +114,7 @@ class Home extends StatelessWidget {
                     child: ElevatedButton(
                   onPressed: () async {
                     int response = await SqlDb().updateData(
-                        "UPDATE 'note' SET note='Asmaa Akram Helmy' WHERE id =10");
+                        "UPDATE 'note' SET note='Asmaa Akram Helmy' WHERE id =27}");
                     print(response);
                   },
                   child: Text('Update Data'),
@@ -91,29 +129,26 @@ class Home extends StatelessWidget {
                           MaterialStateProperty.all(Colors.greenAccent)),
                   onPressed: () async {
                     int response = await SqlDb()
-                        .deleteData("DELETE FROM 'note' WHERE id=10");
+                        .deleteData("DELETE FROM 'note' WHERE id=28 }");
                     print(response);
                   },
                   child: Text('DELETE Data'),
-                ))
+                )),
+                Expanded(
+                    child: ElevatedButton(
+                  style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(Colors.blue)),
+                  onPressed: () async {
+                     await SqlDb().deleteDatabaseMod();
+
+                   },
+                  child: Text('DELETE Database'),
+                )),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                      color: Colors.pink, child: Center(child: Text('$data'))),
-                ),
-                Expanded(
-                  child: Container(
-                      color: Colors.orange, child: Center(child: Text('Note'))),
-                )
-              ],
-            ),
-          ),
+
         ],
       ),
     );
