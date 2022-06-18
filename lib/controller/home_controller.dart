@@ -3,11 +3,24 @@ import 'package:get/get.dart';
 import 'package:notes/sqldb.dart';
 
 class HomeController extends GetxController {
-  Future<List<Map>> getData() async {
+ late List notes=[];
+  bool isLoading =true;
+  Future  getData() async {
+      print('getata');
     List<Map> response = await SqlDb().readData("SELECT * FROM 'note'");
-    update();
+    notes.addAll(response);
+    isLoading=false;
+     update();
 
-    return response;
+
+
+   }
+   @override
+  void onInit() {
+
+   super.onInit();
+
+   // TODO: implement onInit
   }
 
 

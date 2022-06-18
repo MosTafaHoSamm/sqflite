@@ -30,10 +30,14 @@ class SqlDb {
 
   _onCreate(Database db, int version) async {
     String sql = '''
-    CREATE TABLE note ( id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                         note TEXT NOT NULL )
+    CREATE TABLE note ( id INTEGER PRIMARY KEY   NOT NULL ,
+    title TEXT NOT NULL,
+    note TEXT NOT NULL,
+    color TEXT NOT NULL)
     ''';
-    await db.execute(sql);
+Batch batch=db.batch();
+batch.execute(sql);
+await batch.commit();
     print('onCreate');
   }
 
@@ -43,7 +47,7 @@ class SqlDb {
     return response;
   }
 
-  insertData(String sql) async {
+   Future insertData(String sql) async {
     Database? myDb = await db;
     int  response = await myDb !.rawInsert(sql);
     return response;
@@ -65,5 +69,31 @@ class SqlDb {
     String path=join(databasePath,'notes.db');
     await deleteDatabase(path);
 
+  }
+  // ===========================================================
+   /*
+   * Shortcut for sql commands
+   * */
+  read(String table)async{
+    Database? myDb=await db;
+    List<Map>response=await myDb!.query(table);
+    return response;
+  }
+  insert(String table,Map <String ,dynamic>values)async{
+    Database? myDb=await db;
+    int response=await myDb!.insert(table, values);
+    return response;
+
+  }
+  delete(String table,String? myWhere)async{
+    Database? myDb=await db;
+    int response =await myDb!.delete(table,where: myWhere);
+    return response;
+
+  }
+  update(String table, String ? myWhere,Map<String,dynamic>values)async{
+    Database? myDb=await db;
+    int response=await myDb!.update(table, values,where: myWhere);
+    return response;
   }
 }
